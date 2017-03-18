@@ -15,7 +15,7 @@ $di->setShared('dispatcher', function() {
                 'namespace' => 'App\Controllers\Home',
                 'controller' => 'err',
                 'action' => 'show404',
-                'params' => ''
+                'params' => []
             ));
             return false;
         }
@@ -29,7 +29,7 @@ $di->setShared('dispatcher', function() {
                         'namespace' => 'App\Controllers\Home',
                         'controller' => 'err',
                         'action' => 'show404',
-                        'params' => ''
+                        'params' => []
                     ));
                     return false;
             }
