@@ -1,34 +1,48 @@
 <?php
 
-$di->set(
-    'dispatcher',
-    function() use ($di) {
 
-        $evManager = $di->getShared('eventsManager');
+$di->setShared('dispatcher', function() {
 
-        $evManager->attach(
-            "dispatch:beforeException",
-            function($event, $dispatcher, $exception)
-            {
-                switch ($exception->getCode()) {
-                    case \Phalcon\Mvc\Dispatcher::EXCEPTION_HANDLER_NOT_FOUND:
-                    case \Phalcon\Mvc\Dispatcher::EXCEPTION_ACTION_NOT_FOUND:
-                        $dispatcher->forward(
-                        array(
-                        'controller' => 'error',
-                        'action'     => 'show404',
-                        )
-                        );
-                        return false;
-                }
+    //Create/Get an EventManager
+    $eventsManager = new Phalcon\Events\Manager();
+
+    //Attach a listener
+    $eventsManager->attach("dispatch", function($event, $dispatcher, $exception) {
+
+        //The controller exists but the action not
+        if ($event->getType() == 'beforeNotFoundAction') {
+            $dispatcher->forward(array(
+                'namespace' => 'App\Controllers\Home',
+                'controller' => 'err',
+                'action' => 'show404',
+                'params' => ''
+            ));
+            return false;
+        }
+
+        //Alternative way, controller or action doesn't exist
+        if ($event->getType() == 'beforeException') {
+            switch ($exception->getCode()) {
+                case Phalcon\Dispatcher::EXCEPTION_HANDLER_NOT_FOUND:
+                case Phalcon\Dispatcher::EXCEPTION_ACTION_NOT_FOUND:
+                    $dispatcher->forward(array(
+                        'namespace' => 'App\Controllers\Home',
+                        'controller' => 'err',
+                        'action' => 'show404',
+                        'params' => ''
+                    ));
+                    return false;
             }
-        );
-        $dispatcher = new \Phalcon\Mvc\Dispatcher();
-        $dispatcher->setEventsManager($evManager);
-        return $dispatcher;
-    },
-    true
-);
+        }
+    });
+
+    $dispatcher = new Phalcon\Mvc\Dispatcher();
+
+    //Bind the EventsManager to the dispatcher
+    $dispatcher->setEventsManager($eventsManager);
+
+    return $dispatcher;
+});
 
 //+++++++++++++++++++++++++++++++++  或者 +++++++++++++++++++++++++++++++++++++++++
 
